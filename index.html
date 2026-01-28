@@ -1363,24 +1363,6 @@
                         ]
                     }
                 ]
-            },
-            {
-                id: 'cardio',
-                name: 'CARDIO',
-                type: 'Cardio',
-                exercises: [
-                    {
-                        name: 'Carrera continua', sets: 1, reps: '20-30 min', muscleGroup: 'small',
-                        alternatives: [
-                            { name: 'Cinta' },
-                            { name: 'Exterior' },
-                            { name: 'Elíptica' }
-                        ]
-                    },
-                    { name: 'Intervalos HIIT', sets: 8, reps: '30s / 90s', muscleGroup: 'small' },
-                    { name: 'Bicicleta estática', sets: 1, reps: '20-30 min', muscleGroup: 'small' },
-                    { name: 'Remo ergómetro', sets: 1, reps: '15-20 min', muscleGroup: 'small' }
-                ]
             }
         ];
 
@@ -1418,16 +1400,14 @@
             if (saved) {
                 app.routines = JSON.parse(saved);
 
+                // Cleanup: Remove old cardio routine from the selectable list if it exists
+                app.routines = app.routines.filter(r => r.id !== 'cardio');
+
                 // Migrator: Ensure all DEFAULT_ROUTINES exist
                 DEFAULT_ROUTINES.forEach(defRoutine => {
                     const existing = app.routines.find(r => r.id === defRoutine.id);
                     if (!existing) {
                         app.routines.push(JSON.parse(JSON.stringify(defRoutine)));
-                    } else if (defRoutine.id === 'cardio') {
-                        // Force update cardio if it looks old (e.g. fewer exercises)
-                        if (existing.exercises.length !== defRoutine.exercises.length) {
-                            Object.assign(existing, JSON.parse(JSON.stringify(defRoutine)));
-                        }
                     }
                 });
                 saveRoutines();
