@@ -762,6 +762,62 @@
                         <div class="workout-timer" id="workout-timer">00:00</div>
                     </div>
                     <div id="workout-exercises"></div>
+
+                    <!-- Cardio Section (Optional) -->
+                    <div class="card" id="cardio-container"
+                        style="margin-top: var(--spacing-md); border-top: 1px solid var(--border); padding-top: var(--spacing-md);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-sm);">
+                            <h3 style="margin: 0;">🏃‍♂️ Cardio (Opcional)</h3>
+                            <span class="routine-badge badge-cardio">cardio</span>
+                        </div>
+
+                        <div style="margin-bottom: var(--spacing-sm);">
+                            <label
+                                style="font-size: 0.8125rem; color: var(--text-dim); display: block; margin-bottom: 4px;">Tipo
+                                de cardio</label>
+                            <select id="workout-cardio-type" onchange="saveCardioData(); updateCardioRecord()"
+                                style="width: 100%; padding: 8px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+                                <option value="">-- Selecciona --</option>
+                                <option value="bici">Bici</option>
+                                <option value="remo">Remo</option>
+                                <option value="eliptica">Elíptica</option>
+                                <option value="cinta">Cinta</option>
+                            </select>
+                        </div>
+
+                        <div id="latest-cardio-record"
+                            style="display: none; font-size: 0.75rem; color: var(--accent); margin-bottom: var(--spacing-sm); padding: 8px; background: rgba(249, 115, 22, 0.05); border-left: 3px solid var(--accent); border-radius: 4px;">
+                            <!-- Content loaded via JS -->
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm);">
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--text-dim);">Minutos</label>
+                                <input type="number" id="workout-cardio-time" oninput="saveCardioData()" placeholder="0"
+                                    style="width: 100%; padding: 8px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--text-dim);">Velocidad (km/h)</label>
+                                <input type="number" id="workout-cardio-speed" oninput="saveCardioData()"
+                                    placeholder="0" step="0.1"
+                                    style="width: 100%; padding: 8px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--text-dim);">Intensidad</label>
+                                <input type="number" id="workout-cardio-intensity" oninput="saveCardioData()"
+                                    placeholder="0"
+                                    style="width: 100%; padding: 8px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+                            </div>
+                            <div>
+                                <label style="font-size: 0.75rem; color: var(--text-dim);">Inclinación</label>
+                                <input type="number" id="workout-cardio-incline" oninput="saveCardioData()"
+                                    placeholder="0"
+                                    style="width: 100%; padding: 8px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);">
+                            </div>
+                        </div>
+                    </div>
+
                     <div style="display: flex; gap: var(--spacing-sm); margin-top: var(--spacing-md);">
                         <button class="btn btn-secondary" style="flex: 1;" onclick="cancelWorkout()">
                             ❌ Cancelar
@@ -1361,6 +1417,20 @@
             const saved = localStorage.getItem('workoutRoutines');
             if (saved) {
                 app.routines = JSON.parse(saved);
+
+                // Migrator: Ensure all DEFAULT_ROUTINES exist
+                DEFAULT_ROUTINES.forEach(defRoutine => {
+                    const existing = app.routines.find(r => r.id === defRoutine.id);
+                    if (!existing) {
+                        app.routines.push(JSON.parse(JSON.stringify(defRoutine)));
+                    } else if (defRoutine.id === 'cardio') {
+                        // Force update cardio if it looks old (e.g. fewer exercises)
+                        if (existing.exercises.length !== defRoutine.exercises.length) {
+                            Object.assign(existing, JSON.parse(JSON.stringify(defRoutine)));
+                        }
+                    }
+                });
+                saveRoutines();
             } else {
                 app.routines = JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
                 saveRoutines();
@@ -1527,7 +1597,15 @@
                 routineName: `${routine.type} - ${routine.name}`,
                 exercises: JSON.parse(JSON.stringify(routine.exercises)),
                 startTime: new Date(),
-                setsData: {}
+                setsData: {},
+                cardio: {
+                    type: '',
+                    time: '',
+                    speed: '',
+                    intensity: '',
+                    calories: '',
+                    incline: ''
+                }
             };
 
             app.selectedAlts = {};
@@ -1542,9 +1620,56 @@
             renderWorkout();
         }
 
+        function saveCardioData() {
+            if (!app.currentWorkout) return;
+            app.currentWorkout.cardio = {
+                type: document.getElementById('workout-cardio-type').value,
+                time: document.getElementById('workout-cardio-time').value,
+                speed: document.getElementById('workout-cardio-speed').value,
+                intensity: document.getElementById('workout-cardio-intensity').value,
+                incline: document.getElementById('workout-cardio-incline').value
+            };
+        }
+
+        function updateCardioRecord() {
+            const type = document.getElementById('workout-cardio-type').value;
+            const container = document.getElementById('latest-cardio-record');
+
+            if (!type) {
+                container.style.display = 'none';
+                return;
+            }
+
+            const lastWorkout = app.workoutHistory.find(w => w.cardioData && w.cardioData.type === type);
+            if (lastWorkout && lastWorkout.cardioData) {
+                const d = lastWorkout.cardioData;
+                let text = `<strong>Último:</strong> ${d.time}min`;
+                if (d.speed) text += ` | ${d.speed}km/h`;
+                if (d.intensity) text += ` | Int: ${d.intensity}`;
+                if (d.incline) text += ` | Inc: ${d.incline}%`;
+
+                container.innerHTML = text;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
         function renderWorkout() {
             document.getElementById('workout-title').textContent = app.currentWorkout.routineName;
             const isCardioRoutine = app.currentWorkout.routineName.toLowerCase().includes('cardio');
+
+            // Hide cardio container if we're doing a pure cardio routine (optional)
+            // document.getElementById('cardio-container').style.display = isCardioRoutine ? 'none' : 'block';
+
+            // Sync cardio UI with state
+            document.getElementById('workout-cardio-type').value = app.currentWorkout.cardio.type;
+            document.getElementById('workout-cardio-time').value = app.currentWorkout.cardio.time;
+            document.getElementById('workout-cardio-speed').value = app.currentWorkout.cardio.speed;
+            document.getElementById('workout-cardio-intensity').value = app.currentWorkout.cardio.intensity;
+            document.getElementById('workout-cardio-incline').value = app.currentWorkout.cardio.incline;
+
+            updateCardioRecord();
 
             const container = document.getElementById('workout-exercises');
             container.innerHTML = '';
@@ -1794,11 +1919,6 @@
                 }
             });
 
-            if (completedSets === 0) {
-                alert('Completa al menos una serie');
-                return;
-            }
-
             const workout = {
                 date: new Date().toISOString().split('T')[0],
                 type: app.currentWorkout.routineName,
@@ -1807,8 +1927,14 @@
                 volume: Math.round(totalVolume),
                 timestamp: new Date().getTime(),
                 completedSets: completedSets,
-                exerciseData: exerciseData
+                exerciseData: exerciseData,
+                cardioData: app.currentWorkout.cardio.type ? app.currentWorkout.cardio : null
             };
+
+            if (completedSets === 0 && !app.currentWorkout.cardio.type) {
+                alert('Completa al menos una serie o datos de cardio');
+                return;
+            }
 
             app.workoutHistory.unshift(workout);
             saveHistory();
@@ -2121,6 +2247,15 @@
                             <div style="font-size: 0.8125rem; color: var(--text-dim); margin-top: 4px;">
                                 💪 ${workout.completedSets || workout.exercises} series • ⏱️ ${workout.duration} • 🏋️ ${workout.volume} kg
                             </div>
+                            ${workout.cardioData ? `
+                                <div style="font-size: 0.75rem; color: var(--success); margin-top: 4px; padding: 4px 8px; background: rgba(16, 185, 129, 0.05); border-radius: 6px;">
+                                    🏃 ${cardioLabels[workout.cardioData.type] || workout.cardioData.type}: 
+                                    ${workout.cardioData.time || 0}min | 
+                                    ${workout.cardioData.speed ? workout.cardioData.speed + 'km/h | ' : ''}
+                                    ${workout.cardioData.intensity ? 'Int: ' + workout.cardioData.intensity + ' | ' : ''}
+                                    ${workout.cardioData.incline ? 'Inc: ' + workout.cardioData.incline + '%' : ''}
+                                </div>
+                            ` : ''}
                         </div>
                         <button class="btn btn-danger btn-small" onclick="deleteWorkout(${index})" style="min-width: 44px; padding: 0.5rem;">
                             🗑️
