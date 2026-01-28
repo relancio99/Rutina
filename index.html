@@ -1023,23 +1023,23 @@
                         ]
                     },
                     {
-                        name: 'Press inclinado / Poleas', sets: 4, reps: '8-10', muscleGroup: 'large',
+                        name: 'Press inclinado / Poleas cruzadas', sets: 4, reps: '8-10', muscleGroup: 'large',
                         alternatives: [
-                            { name: 'Press inclinado' },
-                            { name: 'Poleas cruzadas' },
+                            { name: 'Press inclinado (mancuernas/máquina)' },
+                            { name: 'Poleas cruzadas inclinadas' },
                             { name: 'Poleas pesadas' }
                         ]
                     },
                     {
-                        name: 'Aperturas pecho', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        name: 'Aperturas pecho', sets: 3, reps: '12-15', muscleGroup: 'large',
                         alternatives: [
-                            { name: 'Pec deck' },
-                            { name: 'Poleas cruzadas' },
-                            { name: 'Poleas pesadas' }
+                            { name: 'Aperturas en máquina pec deck' },
+                            { name: 'Aperturas en poleas cruzadas' },
+                            { name: 'Aperturas en poleas pesadas' }
                         ]
                     },
                     {
-                        name: 'Press militar / Hombro', sets: 3, reps: '8-10', muscleGroup: 'large',
+                        name: 'Press militar sentado', sets: 3, reps: '8-10', muscleGroup: 'large',
                         alternatives: [
                             { name: 'Press militar sentado' },
                             { name: 'Elevaciones frontales' }
@@ -1048,25 +1048,39 @@
                     {
                         name: 'Elevaciones laterales', sets: 3, reps: '12-15', muscleGroup: 'small',
                         alternatives: [
-                            { name: 'En polea' },
-                            { name: 'En polea pesada' }
+                            { name: 'Elevaciones laterales en polea' },
+                            { name: 'Elevaciones laterales en polea pesada' }
                         ]
                     },
                     {
-                        name: 'Extensión tríceps', sets: 3, reps: '10-15', muscleGroup: 'small',
+                        name: 'Extensión tríceps polea', sets: 3, reps: '10-15', muscleGroup: 'small',
                         alternatives: [
-                            { name: 'En polea' },
-                            { name: 'En polea pesada' }
+                            { name: 'Extensión tríceps en polea' },
+                            { name: 'Extensión tríceps en polea pesada' }
                         ]
                     },
-                    { name: 'Curl de muñeca', sets: 3, reps: '12-15', muscleGroup: 'small' },
-                    { name: 'Extensiones lumbares', sets: 3, reps: '10-15', muscleGroup: 'small' },
+                    {
+                        name: 'Curl de muñeca', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Curl de muñeca' },
+                            { name: 'Curl de muñeca en polea' },
+                            { name: 'Curl de muñeca en polea pesada' }
+                        ]
+                    },
+                    {
+                        name: 'Extensiones lumbares', sets: 3, reps: '10-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Extensiones lumbares libre' },
+                            { name: 'Extensiones lumbares máquina' }
+                        ]
+                    },
                     {
                         name: 'Crunch abdominal', sets: 3, reps: '10-15', muscleGroup: 'small',
                         alternatives: [
-                            { name: 'En máquina' },
-                            { name: 'En polea' },
-                            { name: 'En banca' }
+                            { name: 'Crunch en máquina' },
+                            { name: 'Crunch en polea' },
+                            { name: 'Crunch en polea pesada' },
+                            { name: 'Crunch en banca' }
                         ]
                     }
                 ]
@@ -1077,37 +1091,69 @@
                 type: 'PPL',
                 exercises: [
                     {
-                        name: 'Dominadas / Jalón', sets: 4, reps: '6-8', muscleGroup: 'large',
+                        name: 'Dominadas/Jalón', sets: 4, reps: '6-8', muscleGroup: 'large',
                         alternatives: [
-                            { name: 'Jalón al pecho' },
+                            { name: 'Jalón' },
                             { name: 'Dominadas' },
                             { name: 'Jalón máquina' }
                         ]
                     },
                     {
-                        name: 'Remo', sets: 3, reps: '8-10', muscleGroup: 'large',
+                        name: 'Remo barra/máquina', sets: 3, reps: '8-10', muscleGroup: 'large',
                         alternatives: [
                             { name: 'Remo barra' },
                             { name: 'Remo máquina' }
                         ]
                     },
-                    { name: 'Remo Unilateral', sets: 3, reps: '10-12', muscleGroup: 'large' },
-                    { name: 'Face Pulls', sets: 3, reps: '12-15', muscleGroup: 'small' },
                     {
-                        name: 'Curl Bíceps', sets: 3, reps: '8-12', muscleGroup: 'small',
+                        name: 'Remo unilateral', sets: 3, reps: '10-12', muscleGroup: 'large',
                         alternatives: [
-                            { name: 'Curl en polea' },
-                            { name: 'Curl con barra' },
-                            { name: 'Curl adelantado' }
+                            { name: 'Remo unilateral' },
+                            { name: 'Remo unilateral máquina' }
                         ]
                     },
-                    { name: 'Curl Martillo', sets: 3, reps: '10-12', muscleGroup: 'small' },
-                    { name: 'Extensión de muñeca', sets: 3, reps: '12-15', muscleGroup: 'small' },
                     {
-                        name: 'Core antirrotación', sets: 3, reps: '10-12', muscleGroup: 'small',
+                        name: 'Face pulls', sets: 3, reps: '12-15', muscleGroup: 'small',
                         alternatives: [
-                            { name: 'Plancha lateral' },
-                            { name: 'Pallof press' }
+                            { name: 'Face pulls' },
+                            { name: 'Face pulls sentado' },
+                            { name: 'Face pulls en polea pesada' }
+                        ]
+                    },
+                    {
+                        name: 'Curl bíceps', sets: 3, reps: '8-12', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Curl en polea' },
+                            { name: 'Curl en polea pesada' },
+                            { name: 'Curl con barra' },
+                            { name: 'Curl adelantado' },
+                            { name: 'Curl atrasado' },
+                            { name: 'Curl atrasado pesado' }
+                        ]
+                    },
+                    {
+                        name: 'Curl martillo', sets: 3, reps: '10-12', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Curl martillo polea' },
+                            { name: 'Curl martillo polea pesada' },
+                            { name: 'Curl martillo individual en polea' },
+                            { name: 'Curl martillo individual en polea pesada' }
+                        ]
+                    },
+                    {
+                        name: 'Extensión de muñeca', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Extensión de muñeca en polea' },
+                            { name: 'Extensión de muñeca en polea pesada' },
+                            { name: 'Extensión de muñeca con barra' }
+                        ]
+                    },
+                    {
+                        name: 'Core antirotación', sets: 3, reps: '10-12', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Plancha lateral (por lado)' },
+                            { name: 'Pallof press en polea (por lado)' },
+                            { name: 'Pallof press en polea pesada (por lado)' }
                         ]
                     }
                 ]
@@ -1118,22 +1164,22 @@
                 type: 'PPL',
                 exercises: [
                     {
-                        name: 'Sentadilla / Prensa', sets: 4, reps: '6-8', muscleGroup: 'large',
+                        name: 'Sentadilla', sets: 4, reps: '6-8', muscleGroup: 'large',
                         alternatives: [
                             { name: 'Sentadilla' },
-                            { name: 'Prensa de pierna' }
+                            { name: 'Press de pierna' }
                         ]
                     },
-                    { name: 'Hip Thrust', sets: 3, reps: '8-10', muscleGroup: 'large' },
-                    { name: 'Peso Muerto Rumano', sets: 4, reps: '6-10', muscleGroup: 'large' },
-                    { name: 'Extensión Cuádriceps', sets: 4, reps: '12-15', muscleGroup: 'large' },
-                    { name: 'Curl Femoral', sets: 4, reps: '10-15', muscleGroup: 'large' },
+                    { name: 'Hip thrust', sets: 3, reps: '8-10', muscleGroup: 'large' },
+                    { name: 'Peso muerto rumano', sets: 4, reps: '6-10', muscleGroup: 'large' },
+                    { name: 'Extensión cuádriceps', sets: 4, reps: '12-15', muscleGroup: 'large' },
+                    { name: 'Curl femoral', sets: 4, reps: '10-15', muscleGroup: 'large' },
                     { name: 'Aductor máquina', sets: 3, reps: '12-15', muscleGroup: 'small' },
                     {
                         name: 'Gemelos', sets: 5, reps: '12-20', muscleGroup: 'small',
                         alternatives: [
-                            { name: 'En prensa' },
-                            { name: 'En multipower' }
+                            { name: 'Gemelos en prensa' },
+                            { name: 'Gemelos en multipower' }
                         ]
                     },
                     { name: 'Elevaciones de piernas', sets: 3, reps: '10-15', muscleGroup: 'small' }
@@ -1148,25 +1194,78 @@
                         name: 'Press banca', sets: 3, reps: '8-10', muscleGroup: 'large',
                         alternatives: [
                             { name: 'Press en polea' },
+                            { name: 'Press en polea pesada' },
                             { name: 'Press banca máquina' },
                             { name: 'Press banca barra' }
                         ]
                     },
-                    { name: 'Jalón al pecho', sets: 3, reps: '8-10', muscleGroup: 'large' },
-                    { name: 'Aperturas pecho', sets: 3, reps: '10-12', muscleGroup: 'small' },
-                    { name: 'Remo sentado', sets: 3, reps: '10-12', muscleGroup: 'large' },
                     {
-                        name: 'Hombro anterior', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        name: 'Jalón al pecho', sets: 3, reps: '8-10', muscleGroup: 'large',
                         alternatives: [
-                            { name: 'Elevaciones laterales' },
-                            { name: 'Press militar' }
+                            { name: 'Jalón en barra' },
+                            { name: 'Jalón en máquina' }
                         ]
                     },
-                    { name: 'Face pulls', sets: 3, reps: '12-15', muscleGroup: 'small' },
-                    { name: 'Extensión tríceps', sets: 3, reps: '12-15', muscleGroup: 'small' },
-                    { name: 'Curl de muñeca', sets: 3, reps: '12-15', muscleGroup: 'small' },
+                    {
+                        name: 'Aperturas pecho', sets: 3, reps: '10-12', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Aperturas en polea cruzada' },
+                            { name: 'Aperturas en polea pesada' }
+                        ]
+                    },
+                    {
+                        name: 'Remo sentado', sets: 3, reps: '10-12', muscleGroup: 'large',
+                        alternatives: [
+                            { name: 'Remo con máquina' },
+                            { name: 'Remo con barra' }
+                        ]
+                    },
+                    {
+                        name: 'Elevaciones laterales', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Elevaciones en polea cruzada' },
+                            { name: 'Elevaciones en polea pesada' },
+                            { name: 'Elevaciones con disco' }
+                        ]
+                    },
+                    {
+                        name: 'Face pulls', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Face pulls en polea' },
+                            { name: 'Face pulls en polea pesada' }
+                        ]
+                    },
+                    {
+                        name: 'Extensión tríceps', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Extensión tríceps en polea' },
+                            { name: 'Extensión tríceps en polea pesada' }
+                        ]
+                    },
+                    {
+                        name: 'Curl de bíceps', sets: 3, reps: '10-12', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Curl en polea' },
+                            { name: 'Curl en polea pesada' },
+                            { name: 'Curl con barra' }
+                        ]
+                    },
+                    {
+                        name: 'Curl de muñeca', sets: 3, reps: '12-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Curl en polea' },
+                            { name: 'Curl en polea pesada' }
+                        ]
+                    },
                     { name: 'Extensiones lumbares', sets: 3, reps: '10-15', muscleGroup: 'small' },
-                    { name: 'Crunch abdominal', sets: 3, reps: '10-15', muscleGroup: 'small' }
+                    {
+                        name: 'Crunch abdominal', sets: 3, reps: '10-15', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Crunch en máquina' },
+                            { name: 'Crunch en polea' },
+                            { name: 'Crunch en banco' }
+                        ]
+                    }
                 ]
             },
             {
@@ -1174,18 +1273,36 @@
                 name: 'PIERNA',
                 type: 'Torso/Pierna',
                 exercises: [
-                    { name: 'Sentadilla', sets: 3, reps: '8-10', muscleGroup: 'large' },
-                    { name: 'Peso muerto rumano', sets: 3, reps: '8-10', muscleGroup: 'large' },
-                    { name: 'Hip thrust', sets: 3, reps: '12-15', muscleGroup: 'large' },
+                    {
+                        name: 'Sentadilla', sets: 3, reps: '8-10', muscleGroup: 'large',
+                        alternatives: [
+                            { name: 'Sentadilla hack' },
+                            { name: 'Sentadilla en Smith' }
+                        ]
+                    },
+                    {
+                        name: 'Peso muerto rumano', sets: 3, reps: '8-10', muscleGroup: 'large',
+                        alternatives: [
+                            { name: 'Peso muerto rumano con Smith' },
+                            { name: 'Peso muerto rumano con barra' }
+                        ]
+                    },
+                    {
+                        name: 'Hip thrust', sets: 3, reps: '12-15', muscleGroup: 'large',
+                        alternatives: [
+                            { name: 'Hip thrust con Smith' },
+                            { name: 'Hip thrust con barra' }
+                        ]
+                    },
                     { name: 'Extensión cuádriceps', sets: 3, reps: '12-15', muscleGroup: 'large' },
                     { name: 'Curl femoral sentado', sets: 3, reps: '12-15', muscleGroup: 'large' },
-                    { name: 'Gemelos', sets: 3, reps: '15-20', muscleGroup: 'small' },
+                    { name: 'Gemelos en prensa/máquina', sets: 3, reps: '15-20', muscleGroup: 'small' },
                     { name: 'Abductor máquina', sets: 3, reps: '12-15', muscleGroup: 'small' },
                     { name: 'Crunch abdominal', sets: 3, reps: '10-15', muscleGroup: 'small' },
                     {
-                        name: 'Core lateral', sets: 3, reps: '10-12', muscleGroup: 'small',
+                        name: 'Core lateral/antirotación', sets: 3, reps: '10-12', muscleGroup: 'small',
                         alternatives: [
-                            { name: 'Pallof press' },
+                            { name: 'Pallof press (por lado)' },
                             { name: 'Plancha lateral' }
                         ]
                     }
@@ -1196,17 +1313,10 @@
                 name: 'CARDIO',
                 type: 'Cardio',
                 exercises: [
-                    {
-                        name: 'Carrera continua', sets: 1, reps: '20-30 min', muscleGroup: 'small',
-                        alternatives: [
-                            { name: 'Cinta' },
-                            { name: 'Exterior' },
-                            { name: 'Elíptica' }
-                        ]
-                    },
-                    { name: 'Intervalos HIIT', sets: 8, reps: '30s / 90s', muscleGroup: 'small' },
-                    { name: 'Bicicleta estática', sets: 1, reps: '20-30 min', muscleGroup: 'small' },
-                    { name: 'Remo ergómetro', sets: 1, reps: '15-20 min', muscleGroup: 'small' }
+                    { name: 'Bici', sets: 1, reps: '20-30 min', muscleGroup: 'small' },
+                    { name: 'Remo', sets: 1, reps: '15-20 min', muscleGroup: 'small' },
+                    { name: 'Elíptica', sets: 1, reps: '20-30 min', muscleGroup: 'small' },
+                    { name: 'Cinta', sets: 1, reps: '20-30 min', muscleGroup: 'small' }
                 ]
             }
         ];
