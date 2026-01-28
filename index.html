@@ -1313,10 +1313,17 @@
                 name: 'CARDIO',
                 type: 'Cardio',
                 exercises: [
-                    { name: 'Bici', sets: 1, reps: '20-30 min', muscleGroup: 'small' },
-                    { name: 'Remo', sets: 1, reps: '15-20 min', muscleGroup: 'small' },
-                    { name: 'Elíptica', sets: 1, reps: '20-30 min', muscleGroup: 'small' },
-                    { name: 'Cinta', sets: 1, reps: '20-30 min', muscleGroup: 'small' }
+                    {
+                        name: 'Carrera continua', sets: 1, reps: '20-30 min', muscleGroup: 'small',
+                        alternatives: [
+                            { name: 'Cinta' },
+                            { name: 'Exterior' },
+                            { name: 'Elíptica' }
+                        ]
+                    },
+                    { name: 'Intervalos HIIT', sets: 8, reps: '30s / 90s', muscleGroup: 'small' },
+                    { name: 'Bicicleta estática', sets: 1, reps: '20-30 min', muscleGroup: 'small' },
+                    { name: 'Remo ergómetro', sets: 1, reps: '15-20 min', muscleGroup: 'small' }
                 ]
             }
         ];
@@ -1451,6 +1458,13 @@
             alert('✅ Rutina guardada');
         }
 
+        const cardioLabels = {
+            bici: "Bici",
+            remo: "Remo",
+            eliptica: "Elíptica",
+            cinta: "Cinta"
+        };
+
         function confirmAndStartRoutine(routineId) {
             const routine = app.routines.find(r => r.id === routineId);
             if (!routine) return;
@@ -1460,7 +1474,7 @@
             }
         }
 
-        function getGoalForExercise(exerciseName, targetReps) {
+        function getGoalForExercise(exerciseName, targetReps, isCardio = false) {
             if (!app.workoutHistory || app.workoutHistory.length === 0) {
                 return { msg: '🆕 Primera vez', color: '#6366F1', sets: [] };
             }
@@ -1487,15 +1501,18 @@
                 const maxReps = parseInt(repsRange[repsRange.length - 1]);
 
                 let msg, color;
+                const unit = isCardio ? 'min' : 'kg';
+                const repLabel = isCardio ? 'int/vel' : 'reps';
+
                 if (lastReps >= maxReps) {
                     const newWeight = lastWeight + (lastWeight >= 20 ? 2.5 : 1);
-                    msg = `💪 Sube a ${newWeight}kg (${lastWeight}kg × ${lastReps})`;
+                    msg = `💪 Sube a ${newWeight}${unit} (${lastWeight}${unit} × ${lastReps})`;
                     color = '#10B981';
                 } else if (lastReps < parseInt(repsRange[0])) {
-                    msg = `⚠️ Baja peso (${lastWeight}kg × ${lastReps})`;
+                    msg = `⚠️ Baja intensidad (${lastWeight}${unit} × ${lastReps})`;
                     color = '#EF4444';
                 } else {
-                    msg = `📈 +1 rep con ${lastWeight}kg (${lastReps})`;
+                    msg = `📈 +1 ${isCardio ? 'min/int' : 'rep'} con ${lastWeight}${unit} (${lastReps})`;
                     color = '#F97316';
                 }
 
@@ -1527,6 +1544,7 @@
 
         function renderWorkout() {
             document.getElementById('workout-title').textContent = app.currentWorkout.routineName;
+            const isCardioRoutine = app.currentWorkout.routineName.toLowerCase().includes('cardio');
 
             const container = document.getElementById('workout-exercises');
             container.innerHTML = '';
@@ -1553,17 +1571,32 @@
                     `;
                 }
 
-                const goal = getGoalForExercise(activeName, exercise.reps);
+                const goal = getGoalForExercise(activeName, exercise.reps, isCardioRoutine);
 
                 let lastSetsHtml = '';
                 if (goal.sets && goal.sets.length > 0) {
-                    lastSetsHtml = `
-                        <div class="last-session-sets">
-                            Última: ${goal.sets.map((set, idx) =>
-                        `${set.weight}kg×${set.reps}`
-                    ).join(' · ')}
-                        </div>
-                    `;
+                    if (isCardioRoutine) {
+                        // Special cardio display based on user snippet
+                        lastSetsHtml = `
+                            <div class="last-session-sets">
+                                <strong>Último r&eacute;cord:</strong><br>
+                                ${goal.sets.map(set => {
+                            let dataText = '';
+                            if (set.weight) dataText += `Tiempo: ${set.weight} min | `;
+                            if (set.reps) dataText += `Vel/Int: ${set.reps} | `;
+                            return dataText.replace(/ \| $/, '');
+                        }).join('<br>')}
+                            </div>
+                        `;
+                    } else {
+                        lastSetsHtml = `
+                            <div class="last-session-sets">
+                                Última: ${goal.sets.map((set, idx) =>
+                            `${set.weight}kg×${set.reps}`
+                        ).join(' · ')}
+                            </div>
+                        `;
+                    }
                 }
 
                 const progressTip = `
@@ -1581,9 +1614,9 @@
                     setsHtml += `
                         <div class="set-row" data-ex="${exIdx}" data-set="${setIdx}">
                             <div class="set-number">${setIdx + 1}</div>
-                            <input type="number" placeholder="kg" class="weight-input" value="${savedData.weight}" 
+                            <input type="number" placeholder="${isCardioRoutine ? 'min' : 'kg'}" class="weight-input" value="${savedData.weight}" 
                                 data-ex="${exIdx}" data-set="${setIdx}" step="0.5" inputmode="decimal">
-                            <input type="number" placeholder="reps" class="reps-input" value="${savedData.reps}"
+                            <input type="number" placeholder="${isCardioRoutine ? 'int/vel' : 'reps'}" class="reps-input" value="${savedData.reps}"
                                 data-ex="${exIdx}" data-set="${setIdx}" inputmode="numeric">
                             <div class="set-check ${savedData.completed ? 'completed' : ''}" 
                                 data-ex="${exIdx}" data-set="${setIdx}" data-muscle="${exercise.muscleGroup}"
@@ -1599,7 +1632,7 @@
                     ${alternativesHtml}
                     ${progressTip}
                     <div style="color: var(--text-dim); font-size: 0.875rem; margin-bottom: var(--spacing-sm);">
-                        Objetivo: ${exercise.reps} reps
+                        Objetivo: ${exercise.reps} ${isCardioRoutine ? '' : 'reps'}
                     </div>
                     ${setsHtml}
                 `;
