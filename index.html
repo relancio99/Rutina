@@ -1526,92 +1526,114 @@
             cinta: "Cinta"
         };
 
+        // ============================================
+        // GLOBAL ERROR HANDLING (Mobile Debugging)
+        // ============================================
+        window.onerror = function (msg, url, lineNo, columnNo, error) {
+            alert('Error: ' + msg + '\nLine: ' + lineNo);
+            return false;
+        };
+
         function confirmAndStartRoutine(routineId) {
             const routine = app.routines.find(r => r.id === routineId);
             if (!routine) return;
 
-            if (confirm(`¿Comenzar ${routine.type} - ${routine.name}?\n\n${routine.exercises.length} ejercicios`)) {
-                startRoutineWorkout(routine);
-            }
+            // REMOVED blocking confirm() which often hangs on mobile/PWA
+            // Direct start for better UX and stability
+            startRoutineWorkout(routine);
         }
 
         function getGoalForExercise(exerciseName, targetReps, isCardio = false) {
-            if (!app.workoutHistory || app.workoutHistory.length === 0) {
-                return { msg: '🆕 Primera vez', color: '#6366F1', sets: [] };
-            }
-
-            for (let workout of app.workoutHistory) {
-                if (!workout.exerciseData) continue;
-
-                const exData = workout.exerciseData.find(ex => ex.name === exerciseName);
-                if (!exData || !exData.sets || exData.sets.length === 0) continue;
-
-                const allSets = exData.sets.filter(set => set.weight && set.reps);
-                if (allSets.length === 0) continue;
-
-                const bestSet = allSets.reduce((best, set) => {
-                    const volume = parseFloat(set.weight) * parseInt(set.reps);
-                    const bestVolume = parseFloat(best.weight) * parseInt(best.reps);
-
-                    // Robust comparison handling NaNs
-                    if (isNaN(bestVolume)) return set;
-                    if (isNaN(volume)) return best;
-
-                    return volume > bestVolume ? set : best;
-                }, allSets[0]);
-
-                const lastWeight = parseFloat(bestSet.weight);
-                const lastReps = parseInt(bestSet.reps);
-
-                // Check for NaN to avoid messy display
-                if (isNaN(lastWeight) || isNaN(lastReps)) continue;
-
-                const repsRange = targetReps.toString().split('-');
-                const maxReps = parseInt(repsRange[repsRange.length - 1]);
-
-                let msg, color;
-                const unit = isCardio ? 'min' : 'kg';
-                // const repLabel = isCardio ? 'int/vel' : 'reps';
-
-                if (lastReps >= maxReps) {
-                    const newWeight = lastWeight + (lastWeight >= 20 ? 2.5 : 1);
-                    msg = `💪 Sube a ${newWeight}${unit} (${lastWeight}${unit} × ${lastReps})`;
-                    color = '#10B981';
-                } else if (lastReps < parseInt(repsRange[0])) {
-                    msg = `⚠️ Baja intensidad (${lastWeight}${unit} × ${lastReps})`;
-                    color = '#EF4444';
-                } else {
-                    msg = `📈 +1 ${isCardio ? 'min/int' : 'rep'} con ${lastWeight}${unit} (${lastReps})`;
-                    color = '#F97316';
+            try {
+                if (!app.workoutHistory || app.workoutHistory.length === 0) {
+                    return { msg: '🆕 Primera vez', color: '#6366F1', sets: [] };
                 }
 
-                return { msg, color, sets: allSets };
+                for (let workout of app.workoutHistory) {
+                    if (!workout.exerciseData) continue;
+
+                    const exData = workout.exerciseData.find(ex => ex.name === exerciseName);
+                    if (!exData || !exData.sets || exData.sets.length === 0) continue;
+
+                    const allSets = exData.sets.filter(set => set.weight && set.reps);
+                    if (allSets.length === 0) continue;
+
+                    const bestSet = allSets.reduce((best, set) => {
+                        const volume = parseFloat(set.weight) * parseInt(set.reps);
+                        const bestVolume = parseFloat(best.weight) * parseInt(best.reps);
+
+                        // Robust comparison handling NaNs
+                        if (isNaN(bestVolume)) return set;
+                        if (isNaN(volume)) return best;
+
+                        return volume > bestVolume ? set : best;
+                    }, allSets[0]);
+
+                    const lastWeight = parseFloat(bestSet.weight);
+                    const lastReps = parseInt(bestSet.reps);
+
+                    // Check for NaN to avoid messy display
+                    if (isNaN(lastWeight) || isNaN(lastReps)) continue;
+
+                    const repsRange = targetReps.toString().split('-');
+                    const maxReps = parseInt(repsRange[repsRange.length - 1]);
+
+                    let msg, color;
+                    const unit = isCardio ? 'min' : 'kg';
+                    // const repLabel = isCardio ? 'int/vel' : 'reps';
+
+                    if (lastReps >= maxReps) {
+                        const newWeight = lastWeight + (lastWeight >= 20 ? 2.5 : 1);
+                        msg = `💪 Sube a ${newWeight}${unit} (${lastWeight}${unit} × ${lastReps})`;
+                        color = '#10B981';
+                    } else if (lastReps < parseInt(repsRange[0])) {
+                        msg = `⚠️ Baja intensidad (${lastWeight}${unit} × ${lastReps})`;
+                        color = '#EF4444';
+                    } else {
+                        msg = `📈 +1 ${isCardio ? 'min/int' : 'rep'} con ${lastWeight}${unit} (${lastReps})`;
+                        color = '#F97316';
+                    }
+
+                    return { msg, color, sets: allSets };
+                }
+            } catch (e) {
+                console.error("Error in goal calc:", e);
+                return { msg: 'Error calc', color: '#9CA3AF', sets: [] };
             }
 
             return { msg: '🆕 Primera vez', color: '#6366F1', sets: [] };
         }
 
         function startRoutineWorkout(routine) {
-            app.currentWorkout = {
-                routineName: `${routine.type} - ${routine.name}`,
-                exercises: JSON.parse(JSON.stringify(routine.exercises)),
-                startTime: new Date(),
-                setsData: {},
-                cardio: {
-                    type: '',
-                    time: '',
-                    speed: '',
-                    intensity: '',
-                    calories: '',
-                    incline: ''
-                }
-            };
+            try {
+                console.log("Starting routine:", routine.name);
+                app.currentWorkout = {
+                    routineName: `${routine.type} - ${routine.name}`,
+                    exercises: JSON.parse(JSON.stringify(routine.exercises)),
+                    startTime: new Date(),
+                    setsData: {},
+                    cardio: {
+                        type: '',
+                        time: '',
+                        speed: '',
+                        intensity: '',
+                        calories: '',
+                        incline: ''
+                    }
+                };
 
-            app.selectedAlts = {};
+                app.selectedAlts = {};
 
-            showView('workout');
-            renderWorkout();
-            startWorkoutTimer();
+                showView('workout');
+                // Use setTimeout to allow UI to update before heavy rendering
+                setTimeout(() => {
+                    renderWorkout();
+                    startWorkoutTimer();
+                }, 50);
+
+            } catch (err) {
+                alert("Error iniciando rutina: " + err.message);
+            }
         }
 
         function setAlternative(exIdx, altIdx) {
