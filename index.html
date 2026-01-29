@@ -2275,10 +2275,10 @@
                             ${workout.cardioData ? `
                                 <div style="font-size: 0.75rem; color: var(--success); margin-top: 4px; padding: 4px 8px; background: rgba(16, 185, 129, 0.05); border-radius: 6px;">
                                     🏃 ${cardioLabels[workout.cardioData.type] || workout.cardioData.type}: 
-                                    ${workout.cardioData.time || 0}min | 
-                                    ${workout.cardioData.speed ? workout.cardioData.speed + 'km/h | ' : ''}
-                                    ${workout.cardioData.intensity ? 'Int: ' + workout.cardioData.intensity + ' | ' : ''}
-                                    ${workout.cardioData.incline ? 'Inc: ' + workout.cardioData.incline + '%' : ''}
+                                    ${workout.cardioData?.time || 0}min | 
+                                    workout.cardioData?.speed ? workout.cardioData.speed + 'km/h | ' : ''}
+                                    ${workout.cardioData?.intensity ? 'Int: ' + workout.cardioData.intensity + ' | ' : ''}
+                                    ${workout.cardioData?.incline ? 'Inc: ' + workout.cardioData.incline + '%' : ''}
                                 </div>
                             ` : ''}
                         </div>
