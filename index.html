@@ -2252,7 +2252,8 @@
             localStorage.setItem('workoutHistory', JSON.stringify(app.workoutHistory));
         }
 
-        function renderHistory() {
+        
+function renderHistory() {
             const historyList = document.getElementById('history-list');
             if (!historyList) return;
 
@@ -2288,8 +2289,7 @@
                     </div>
                 </div>
             `).join('');
-        }
-
+}
         function deleteWorkout(index) {
             if (confirm('¿Eliminar este entrenamiento?')) {
                 app.workoutHistory.splice(index, 1);
