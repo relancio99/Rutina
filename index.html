@@ -2304,7 +2304,7 @@
 
         // Register Service Worker for PWA/Offline support
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
+            navigator.serviceWorker.register('./service-worker.js?v=4')
                 .then(() => console.log('Service Worker Registered'))
                 .catch(err => console.log('SW Error:', err));
         }
