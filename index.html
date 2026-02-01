@@ -724,6 +724,7 @@
         </header>
 
         <main>
+            <div id="recovery-container"></div>
             <!-- Home View -->
             <div id="home-view" class="view active">
                 <div class="card">
@@ -1006,14 +1007,25 @@
                 // Request persistent storage
                 async function requestPersistence() {
                     if (navigator.storage && navigator.storage.persist) {
-                        const isPersisted = await navigator.storage.persist();
-                        console.log(`Almacenamiento persistente: ${isPersisted}`);
+                        try {
+                            const isPersisted = await navigator.storage.persist();
+                            console.log(`Almacenamiento persistente: ${isPersisted}`);
+                        } catch (e) {
+                            console.warn('Persistence check failed', e);
+                        }
                     }
                 }
                 requestPersistence();
 
                 if (!this.context) {
                     this.context = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+
+            // Resume audio context on user interaction (Critical for mobile)
+            resume() {
+                if (this.context && this.context.state === 'suspended') {
+                    this.context.resume();
                 }
             },
 
@@ -1444,8 +1456,28 @@
             updateStats();
             populateExerciseSelector();
 
-            // Check for interrupted workout and offer to recover
-            checkForActiveWorkout();
+            // Handle Android Back Button
+            window.addEventListener('popstate', (event) => {
+                if (app.currentWorkout) {
+                    // If in workout, prevent exit unless confirmed
+                    history.pushState({ view: 'workout' }, '');
+                } else if (app.currentView !== 'home') {
+                    showView('home');
+                }
+            });
+
+            // Check for interrupted workout nicely (no blocking alert)
+            checkForActiveWorkoutNew();
+
+            // Global click listener to resume AudioContext (Critical for mobile)
+            document.addEventListener('click', () => {
+                if (AudioSystem.context) AudioSystem.resume();
+            }, { once: false, passive: true });
+
+            // Global click listener to resume AudioContext
+            document.addEventListener('click', () => {
+                if (AudioSystem.context) AudioSystem.resume();
+            }, { once: false, passive: true });
         }
 
         function checkForActiveWorkout() {
@@ -1663,25 +1695,34 @@
             return { msg: '🆕 Primera vez', color: '#6366F1', sets: [] };
         }
 
-        function startRoutineWorkout(routine) {
-            app.currentWorkout = {
-                routineName: `${routine.type} - ${routine.name}`,
-                exercises: JSON.parse(JSON.stringify(routine.exercises)),
-                startTime: new Date(),
-                setsData: {}
-            };
+        function startRoutineWorkout(routine, isRecovery = false) {
+            if (!isRecovery && routine) {
+                app.currentWorkout = {
+                    routineName: `${routine.type} - ${routine.name}`,
+                    exercises: JSON.parse(JSON.stringify(routine.exercises)),
+                    startTime: new Date(),
+                    setsData: {}
+                };
+                app.selectedAlts = {};
+            }
 
-            app.selectedAlts = {};
+            // Push state to history to capture "Back" button
+            history.pushState({ view: 'workout' }, 'Workout');
 
             // Activate wake lock to keep screen on
             WakeLockSystem.acquire();
 
-            // Save to persistent storage immediately
-            WorkoutPersistence.save();
+            // Save to persistent storage immediately if new
+            if (!isRecovery) {
+                WorkoutPersistence.save();
+            }
 
             showView('workout');
             renderWorkout();
             startWorkoutTimer();
+
+            // Resume audio just in case
+            if (AudioSystem.context) AudioSystem.resume();
         }
 
         function setAlternative(exIdx, altIdx) {
@@ -2433,6 +2474,56 @@
                 updateStats();
                 renderHistory();
                 populateExerciseSelector();
+            }
+        }
+
+        function recoverSession() {
+            const savedWorkout = WorkoutPersistence.load();
+            if (savedWorkout) {
+                app.currentWorkout = savedWorkout;
+                app.selectedAlts = savedWorkout.selectedAlts || {};
+
+                // Ensure date object is valid
+                if (typeof app.currentWorkout.startTime === 'string') {
+                    app.currentWorkout.startTime = new Date(app.currentWorkout.startTime);
+                }
+
+                startRoutineWorkout(null, true);
+                document.getElementById('recovery-container').innerHTML = '';
+            }
+        }
+
+        function discardRecovery() {
+            WorkoutPersistence.clear();
+            document.getElementById('recovery-container').innerHTML = '';
+        }
+
+        function checkForActiveWorkoutNew() {
+            const savedWorkout = WorkoutPersistence.load();
+            if (savedWorkout) {
+                const savedTime = new Date(savedWorkout.savedAt);
+                const minutesAgo = Math.round((Date.now() - savedTime.getTime()) / 60000);
+
+                // Only valid if < 12 hours
+                if (minutesAgo < 720) {
+                    const btnContainer = document.getElementById('recovery-container');
+                    if (btnContainer) {
+                        btnContainer.innerHTML = `
+                            <div style="background: var(--surface); border: 1px solid var(--primary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-md); animation: fadeIn 0.5s;">
+                                <h3 style="color: var(--primary); margin-bottom: 4px;">⚠️ Entrenamiento no finalizado</h3>
+                                <p style="font-size: 0.875rem; color: var(--text-dim); margin-bottom: var(--spacing-sm);">
+                                    ${savedWorkout.routineName} · Hace ${minutesAgo} min
+                                </p>
+                                <div style="display: flex; gap: var(--spacing-sm);">
+                                    <button class="btn btn-secondary btn-small" style="flex: 1" onclick="discardRecovery()">Descartar</button>
+                                    <button class="btn btn-primary btn-small" style="flex: 1" onclick="recoverSession()">Continuar</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } else {
+                    WorkoutPersistence.clear();
+                }
             }
         }
 
