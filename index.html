@@ -903,19 +903,114 @@
 
     <script>
         // ============================================
+        // WAKE LOCK SYSTEM - Prevents screen from turning off
+        // ============================================
+        const WakeLockSystem = {
+            wakeLock: null,
+
+            async acquire() {
+                if ('wakeLock' in navigator) {
+                    try {
+                        this.wakeLock = await navigator.wakeLock.request('screen');
+                        console.log('✅ Wake Lock activado - pantalla no se apagará');
+
+                        this.wakeLock.addEventListener('release', () => {
+                            console.log('⚠️ Wake Lock liberado');
+                        });
+                    } catch (err) {
+                        console.log('Wake Lock error:', err.message);
+                    }
+                }
+            },
+
+            async release() {
+                if (this.wakeLock) {
+                    try {
+                        await this.wakeLock.release();
+                        this.wakeLock = null;
+                        console.log('Wake Lock liberado manualmente');
+                    } catch (err) {
+                        console.log('Error releasing wake lock:', err);
+                    }
+                }
+            },
+
+            // Re-acquire when visibility changes (important for mobile)
+            handleVisibilityChange() {
+                if (document.visibilityState === 'visible' && app.currentWorkout) {
+                    this.acquire();
+                }
+            }
+        };
+
+        // Listen for visibility changes to re-acquire wake lock
+        document.addEventListener('visibilitychange', () => {
+            WakeLockSystem.handleVisibilityChange();
+        });
+
+        // ============================================
+        // PERSISTENT WORKOUT STORAGE - Saves workout in progress
+        // ============================================
+        const WorkoutPersistence = {
+            STORAGE_KEY: 'activeWorkout',
+
+            save() {
+                if (!app.currentWorkout) return;
+
+                const dataToSave = {
+                    ...app.currentWorkout,
+                    startTime: app.currentWorkout.startTime.toISOString(),
+                    savedAt: new Date().toISOString(),
+                    selectedAlts: app.selectedAlts
+                };
+
+                try {
+                    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dataToSave));
+                    console.log('💾 Entrenamiento guardado automáticamente');
+                } catch (err) {
+                    console.error('Error saving workout:', err);
+                }
+            },
+
+            load() {
+                try {
+                    const saved = localStorage.getItem(this.STORAGE_KEY);
+                    if (!saved) return null;
+
+                    const data = JSON.parse(saved);
+                    data.startTime = new Date(data.startTime);
+                    return data;
+                } catch (err) {
+                    console.error('Error loading workout:', err);
+                    return null;
+                }
+            },
+
+            clear() {
+                localStorage.removeItem(this.STORAGE_KEY);
+                console.log('🗑️ Entrenamiento en progreso eliminado');
+            },
+
+            hasActiveWorkout() {
+                return localStorage.getItem(this.STORAGE_KEY) !== null;
+            }
+        };
+
+        // ============================================
         // AUDIO SYSTEM
         // ============================================
         const AudioSystem = {
             context: null,
 
             init() {
-                // Añadir al inicio de init()
+                // Request persistent storage
                 async function requestPersistence() {
                     if (navigator.storage && navigator.storage.persist) {
                         const isPersisted = await navigator.storage.persist();
                         console.log(`Almacenamiento persistente: ${isPersisted}`);
                     }
                 }
+                requestPersistence();
 
                 if (!this.context) {
                     this.context = new (window.AudioContext || window.webkitAudioContext)();
@@ -1348,6 +1443,44 @@
             renderRoutineCards();
             updateStats();
             populateExerciseSelector();
+
+            // Check for interrupted workout and offer to recover
+            checkForActiveWorkout();
+        }
+
+        function checkForActiveWorkout() {
+            const savedWorkout = WorkoutPersistence.load();
+            if (savedWorkout) {
+                const savedTime = new Date(savedWorkout.savedAt);
+                const minutesAgo = Math.round((Date.now() - savedTime.getTime()) / 60000);
+
+                // Only offer recovery if it was saved within the last 4 hours
+                if (minutesAgo < 240) {
+                    const recover = confirm(
+                        `🔄 Entrenamiento interrumpido\n\n` +
+                        `${savedWorkout.routineName}\n` +
+                        `Guardado hace ${minutesAgo} min\n\n` +
+                        `¿Continuar donde lo dejaste?`
+                    );
+
+                    if (recover) {
+                        // Restore workout state
+                        app.currentWorkout = savedWorkout;
+                        app.selectedAlts = savedWorkout.selectedAlts || {};
+
+                        showView('workout');
+                        renderWorkout();
+                        startWorkoutTimer();
+                        WakeLockSystem.acquire();
+
+                        console.log('✅ Entrenamiento recuperado');
+                        return;
+                    }
+                }
+
+                // Clear old workout if not recovered
+                WorkoutPersistence.clear();
+            }
         }
 
         function loadRoutines() {
@@ -1540,6 +1673,12 @@
 
             app.selectedAlts = {};
 
+            // Activate wake lock to keep screen on
+            WakeLockSystem.acquire();
+
+            // Save to persistent storage immediately
+            WorkoutPersistence.save();
+
             showView('workout');
             renderWorkout();
             startWorkoutTimer();
@@ -1724,6 +1863,9 @@
                 calories: document.getElementById('workout-cardio-calories').value,
                 incline: document.getElementById('workout-cardio-incline').value
             };
+
+            // Save to persistent storage immediately
+            WorkoutPersistence.save();
         }
 
         function toggleSet(exIdx, setIdx, muscleGroup) {
@@ -1806,8 +1948,11 @@
         }
 
         function saveWorkoutData() {
+            if (!app.currentWorkout) return;
+
             if (app.currentWorkout.cardio) {
                 // Cardio case: is handled by inline events, nothing to loop over
+                WorkoutPersistence.save();
                 return;
             }
 
@@ -1822,6 +1967,9 @@
 
                 app.currentWorkout.setsData[setKey] = { weight, reps, completed };
             });
+
+            // Save to persistent storage immediately
+            WorkoutPersistence.save();
         }
 
         function startWorkoutTimer() {
@@ -1842,6 +1990,11 @@
                 clearInterval(app.timerInterval);
                 stopRest();
                 app.currentWorkout = null;
+
+                // Clear persistent storage and release wake lock
+                WorkoutPersistence.clear();
+                WakeLockSystem.release();
+
                 showView('home');
             }
         }
@@ -1898,6 +2051,11 @@
                 clearInterval(app.timerInterval);
                 stopRest();
                 app.currentWorkout = null;
+
+                // Clear persistent storage and release wake lock
+                WorkoutPersistence.clear();
+                WakeLockSystem.release();
+
                 alert(`✅ Cardio Guardado\n\n${c.type} · ${c.time} min`);
                 showView('home');
                 return;
@@ -1955,6 +2113,10 @@
 
             stopRest();
             app.currentWorkout = null;
+
+            // Clear persistent storage and release wake lock
+            WorkoutPersistence.clear();
+            WakeLockSystem.release();
 
             alert(`✅ Completado\n\n${completedSets} series · ${Math.round(totalVolume)} kg · ${duration} min`);
 
@@ -2274,13 +2436,45 @@
             }
         }
 
+        // Emergency save on close/hide
+        window.addEventListener('beforeunload', () => {
+            if (app.currentWorkout) {
+                WorkoutPersistence.save();
+            }
+        });
+
+        window.addEventListener('pagehide', () => {
+            if (app.currentWorkout) {
+                WorkoutPersistence.save();
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', init);
 
         // Register Service Worker for PWA/Offline support
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./service-worker.js')
-                .then(() => console.log('Service Worker Registered'))
-                .catch(err => console.log('SW Error:', err));
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker Registered with scope:', registration.scope);
+
+                        // Check for updates
+                        registration.onupdatefound = () => {
+                            const installingWorker = registration.installing;
+                            installingWorker.onstatechange = () => {
+                                if (installingWorker.state === 'installed') {
+                                    if (navigator.serviceWorker.controller) {
+                                        console.log('Nueva versión disponible. Recarga para actualizar.');
+                                        // Optional: Show toast to user to reload
+                                    } else {
+                                        console.log('Contenido cacheado para uso offline.');
+                                    }
+                                }
+                            };
+                        };
+                    })
+                    .catch(err => console.log('SW Error:', err));
+            });
         }
     </script>
 </body>
